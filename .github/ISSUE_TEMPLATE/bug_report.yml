@@ -1,0 +1,98 @@
+name: Bug report
+description: Report a reproducible SmartFarmOS defect
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include credentials, private farm data, participant data, local databases, environment output, or unredacted logs. Security vulnerabilities belong in the private process described in SECURITY.md.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues for this problem.
+          required: true
+        - label: I removed credentials, personal data, and private operational data.
+          required: true
+        - label: I am not reporting a security vulnerability in this public issue.
+          required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - User PWA
+        - Gateway admin console
+        - Central API
+        - Edge Gateway
+        - Raspberry Pi Edge CLI or service
+        - Shared contracts
+        - Module SDK
+        - Device simulator
+        - Local demo or tooling
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the observed result and its impact.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What observable result did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Minimal reproduction
+      description: Provide the smallest deterministic sequence that reproduces the problem.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Select ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Node.js version, browser, command, and relevant commit.
+      placeholder: |
+        OS:
+        Node.js:
+        Browser:
+        Command:
+        Commit:
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Sanitized diagnostics
+      description: List exact commands and the smallest relevant error excerpt. Do not run or paste env, printenv, environment files, databases, full profiles, tokens, or authorization headers.
+  - type: dropdown
+    id: hardware
+    attributes:
+      label: Evidence boundary
+      options:
+        - Simulator/local demo only
+        - Physical device with authorized test access
+        - Not applicable
+    validations:
+      required: true
+  - type: textarea
+    id: hardware_context
+    attributes:
+      label: Hardware context
+      description: If physical hardware was involved, list the board, OS, transport or adapter, and unverified behavior. Never include enrollment tokens, Edge keys, passwords, or private configuration.

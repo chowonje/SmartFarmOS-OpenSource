@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "smartfarm.usability-session-result.v1",
+  "sessionCode": "S01",
+  "participantRole": "current-farmer",
+  "experienceBand": "4-plus-years",
+  "deviceClass": "desktop",
+  "tasks": {
+    "findAttentionArea": {
+      "unassistedCompleted": true,
+      "durationSeconds": 42,
+      "helpRequestCount": 0,
+      "correctedMisstepCount": 0,
+      "navigationLoopCount": 0
+    },
+    "explainOutOfRangeMetric": {
+      "unassistedCompleted": true,
+      "durationSeconds": 55,
+      "helpRequestCount": 0,
+      "correctedMisstepCount": 0,
+      "navigationLoopCount": 0
+    },
+    "acknowledgeAlarm": {
+      "unassistedCompleted": true,
+      "durationSeconds": 36,
+      "helpRequestCount": 0,
+      "correctedMisstepCount": 0,
+      "navigationLoopCount": 0
+    },
+    "applyIrrigationPreset": {
+      "unassistedCompleted": true,
+      "durationSeconds": 71,
+      "helpRequestCount": 0,
+      "correctedMisstepCount": 0,
+      "navigationLoopCount": 0
+    },
+    "verifyCommandAndAudit": {
+      "unassistedCompleted": true,
+      "durationSeconds": 49,
+      "helpRequestCount": 0,
+      "correctedMisstepCount": 0,
+      "navigationLoopCount": 0
+    }
+  },
+  "judgments": {
+    "attentionAreaCorrect": true,
+    "outOfRangeMetricCorrect": true,
+    "irrigationTargetCorrect": true,
+    "ackAndAuditEvidenceCorrect": true
+  },
+  "totalDurationSeconds": 287,
+  "confidenceScore": 4,
+  "safety": {
+    "wrongAreaSubmissionCount": 0,
+    "pendingDuplicateSubmissionCount": 0,
+    "explainedTimedStopIsNotPhysicalSafetyBeforeDebrief": true,
+    "productionDeviceUsed": false,
+    "productionCredentialsUsed": false
+  },
+  "issues": [
+    {
+      "code": "S01-01",
+      "pattern": "command-result-location",
+      "severity": "P2",
+      "retestStatus": "passed"
+    }
+  ]
+}

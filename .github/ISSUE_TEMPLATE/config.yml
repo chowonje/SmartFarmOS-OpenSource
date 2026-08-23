@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Field-test checklist
+    url: https://github.com/chowonje/SmartFarmOS/blob/main/docs/testing/field-test-checklist.md
+    about: Use the simulator, Raspberry Pi, and participant evidence boundaries before reporting test results.
+  - name: Support guide
+    url: https://github.com/chowonje/SmartFarmOS/blob/main/SUPPORT.md
+    about: Read setup, support scope, and safe diagnostic guidance before filing.
+  - name: Security policy
+    url: https://github.com/chowonje/SmartFarmOS/security/policy
+    about: Use the private vulnerability flow when available; never post exploit details publicly.

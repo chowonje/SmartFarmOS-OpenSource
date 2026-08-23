@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 512 512" role="img" aria-label="SmartFarm OS">
+  <rect width="512" height="512" fill="#183c29"/>
+  <path d="M128 250 256 138l128 112v138H128Z" fill="#f2f7ee"/>
+  <path d="M256 388V226" stroke="#3f8b5c" stroke-width="34" stroke-linecap="round"/>
+  <path d="M248 278c-58-4-88-35-91-90 56 2 88 32 91 90Zm16 42c57-5 86-35 89-89-55 2-86 32-89 89Z" fill="#72b77f"/>
+</svg>

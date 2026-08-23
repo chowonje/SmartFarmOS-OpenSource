@@ -1,0 +1,30 @@
+{
+  admin off
+}
+
+{$SMARTFARM_SITE_ADDRESS} {
+  encode zstd gzip
+
+  @health path /healthz
+  handle @health {
+    rewrite * /health
+    reverse_proxy 127.0.0.1:3100
+  }
+
+  handle {
+    basic_auth {
+      {$SMARTFARM_BASIC_AUTH_USER} {$SMARTFARM_BASIC_AUTH_HASH}
+    }
+
+    header {
+      X-Content-Type-Options nosniff
+      X-Frame-Options DENY
+      Referrer-Policy no-referrer
+      -Server
+    }
+
+    reverse_proxy 127.0.0.1:4173 {
+      health_uri /
+    }
+  }
+}

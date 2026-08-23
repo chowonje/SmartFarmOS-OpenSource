@@ -1,0 +1,51 @@
+{
+  "name": "smartfarm-os",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Pre-release simulator-backed smart-farm IoT platform with a user PWA, central API, and Edge Gateway.",
+  "engines": {
+    "node": "^22.13.0 || ^24.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "services/*",
+    "tools/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run build && npm run test:workspaces",
+    "test:workspaces": "npm run test --workspaces --if-present",
+    "cloud-pilot:hash-password": "docker run --rm -i caddy:2.10 caddy hash-password",
+    "cloud-pilot:up": "node scripts/run-cloud-pilot-compose.mjs up -d --build",
+    "cloud-pilot:down": "node scripts/run-cloud-pilot-compose.mjs down",
+    "cloud-pilot:logs": "node scripts/run-cloud-pilot-compose.mjs logs -f",
+    "cloud-pilot:verify": "node scripts/verify-cloud-pilot-package.mjs",
+    "dev:pwa": "npm run dev --workspace=@smartfarm-os/pwa",
+    "dev:admin": "npm run dev --workspace=@smartfarm-os/admin",
+    "demo:local": "npm run build && node scripts/run-local-demo.mjs",
+    "demo:local:preview": "npm run build && node scripts/run-local-demo.mjs --preview",
+    "demo:usability": "node scripts/run-usability-session.mjs",
+    "usability:record": "node scripts/record-usability-result.mjs",
+    "usability:summarize": "node scripts/summarize-usability-results.mjs",
+    "submission:license-audit": "node scripts/verify-dependency-licenses.mjs",
+    "security:workflow-pins": "node scripts/verify-github-actions-pins.mjs",
+    "submission:video-draft": "npm run build && node scripts/create-demo-video.mjs",
+    "submission:video-proof": "node scripts/create-video-proof.mjs",
+    "submission:rehearse": "node scripts/rehearse-submission.mjs",
+    "demo:simulator": "npm run demo --workspace=@smartfarm-os/device-simulator",
+    "smoke:simulator": "node scripts/verify-simulator-output.mjs",
+    "smoke:api": "node scripts/verify-api-roundtrip.mjs",
+    "smoke:edge": "node scripts/verify-edge-roundtrip.mjs",
+    "smoke:persistence": "node scripts/verify-persistence-roundtrip.mjs",
+    "smoke:pwa": "node scripts/verify-pwa-build.mjs",
+    "smoke:pwa:browser": "node scripts/verify-pwa-browser.mjs",
+    "verify": "./scripts/verify.sh"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "typescript": "7.0.2"
+  }
+}

@@ -1,0 +1,536 @@
+import { randomUUID } from "node:crypto";
+import {
+  ApiErrorSchema,
+  CommandAckSchema,
+  CommandPathParamsSchema,
+  CommandProjectionSchema,
+  CommandSchema,
+  CreateCropRequestSchema,
+  CreatePumpCommandRequestSchema,
+  CropPathParamsSchema,
+  CropRecordSchema,
+  CropResponseSchema,
+  CropListResponseSchema,
+  CropIdSchema,
+  DeviceListResponseSchema,
+  FarmIdSchema,
+  FarmListResponseSchema,
+  FarmPathParamsSchema,
+  HealthResponseSchema,
+  LatestTelemetryPathParamsSchema,
+  LatestTelemetryQuerySchema,
+  LatestTelemetryResponseSchema,
+  NextCommandQuerySchema,
+  PendingCommandResponseSchema,
+  PatchCropRequestSchema,
+  TelemetryReceiptSchema,
+  TelemetrySchema,
+  type ApiErrorCode,
+  type CropRecord,
+  type FarmId,
+} from "@smartfarm-os/contracts";
+import fastify, {
+  type FastifyInstance,
+  type FastifyReply,
+  type FastifyRequest,
+} from "fastify";
+import type { AuthPrincipal, AuthRole, AuthenticateRequest } from "./auth.js";
+import { InMemorySmartFarmStore, type SmartFarmStore } from "./store.js";
+
+export type BuildApiOptions = {
+  readonly authenticate: AuthenticateRequest;
+  readonly createCommandId?: () => string;
+  readonly createCropId?: () => string;
+  readonly now?: () => Date;
+  readonly store?: SmartFarmStore;
+};
+
+export function buildApi(options: BuildApiOptions): FastifyInstance {
+  const app = fastify({
+    bodyLimit: 64 * 1_024,
+    logger: false,
+  });
+  const store = options.store ?? new InMemorySmartFarmStore();
+  const now = options.now ?? (() => new Date());
+  const createCommandId = options.createCommandId ?? (() => `command:${randomUUID()}`);
+  const createCropId = options.createCropId ?? (() => `crop:${randomUUID()}`);
+
+  app.setErrorHandler((_error, _request, reply) =>
+    sendError(reply, 500, "internal_error", "The request could not be completed"));
+
+  app.setNotFoundHandler((_request, reply) =>
+    sendError(reply, 404, "not_found", "Route not found"));
+
+  app.get("/health", async () => HealthResponseSchema.parse({
+    schemaVersion: "smartfarm.health.v1",
+    status: "ok",
+  }));
+
+  app.get("/v1/farms", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const farms = store
+      .listFarms()
+      .filter((farm) => principal.farmIds.includes(farm.id));
+
+    return FarmListResponseSchema.parse({
+      schemaVersion: "smartfarm.farm-list.v1",
+      farms,
+    });
+  });
+
+  app.get("/v1/farms/:farmId/devices", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    return DeviceListResponseSchema.parse({
+      schemaVersion: "smartfarm.device-list.v1",
+      devices: store.listDevices(params.data.farmId),
+    });
+  });
+
+  app.get("/v1/farms/:farmId/crops", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    return CropListResponseSchema.parse({
+      schemaVersion: "smartfarm.crop-list.v1",
+      crops: store.listCrops(params.data.farmId),
+    });
+  });
+
+  app.get("/v1/farms/:farmId/crops/:cropId", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = CropPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    const crop = store.getCrop(params.data.farmId, params.data.cropId);
+    if (crop === null) {
+      return sendError(reply, 404, "not_found", "Crop not found");
+    }
+
+    return CropResponseSchema.parse({
+      schemaVersion: "smartfarm.crop-response.v1",
+      crop,
+    });
+  });
+
+  app.post("/v1/farms/:farmId/crops", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    const body = CreateCropRequestSchema.safeParse(request.body);
+    if (!body.success) return sendValidationError(reply, body.error.issues);
+
+    const deviceId = body.data.deviceId ?? null;
+    if (deviceId !== null && store.getDevice(params.data.farmId, deviceId) === null) {
+      return sendError(reply, 404, "not_found", "Device not found");
+    }
+
+    const timestamp = now().toISOString();
+    const crop = buildCropRecord({
+      schemaVersion: "smartfarm.crop.v1",
+      id: CropIdSchema.parse(createCropId()),
+      farmId: params.data.farmId,
+      deviceId,
+      name: body.data.name,
+      healthStatus: body.data.healthStatus,
+      managerName: body.data.managerName ?? null,
+      notes: body.data.notes ?? null,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+    const result = store.createCrop(crop);
+    if (result.kind === "conflict") {
+      return sendError(reply, 409, "conflict", result.reason);
+    }
+
+    return reply.code(201).send(CropResponseSchema.parse({
+      schemaVersion: "smartfarm.crop-response.v1",
+      crop: result.crop,
+    }));
+  });
+
+  app.patch("/v1/farms/:farmId/crops/:cropId", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = CropPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    const body = PatchCropRequestSchema.safeParse(request.body);
+    if (!body.success) return sendValidationError(reply, body.error.issues);
+
+    const existingCrop = store.getCrop(params.data.farmId, params.data.cropId);
+    if (existingCrop === null) {
+      return sendError(reply, 404, "not_found", "Crop not found");
+    }
+
+    const deviceId = body.data.deviceId === undefined
+      ? existingCrop.deviceId
+      : body.data.deviceId;
+    if (deviceId !== null && store.getDevice(params.data.farmId, deviceId) === null) {
+      return sendError(reply, 404, "not_found", "Device not found");
+    }
+
+    const crop = buildCropRecord({
+      schemaVersion: existingCrop.schemaVersion,
+      id: existingCrop.id,
+      farmId: existingCrop.farmId,
+      deviceId,
+      name: body.data.name ?? existingCrop.name,
+      healthStatus: body.data.healthStatus ?? existingCrop.healthStatus,
+      managerName: body.data.managerName === undefined
+        ? existingCrop.managerName
+        : body.data.managerName,
+      notes: body.data.notes === undefined ? existingCrop.notes : body.data.notes,
+      createdAt: existingCrop.createdAt,
+      updatedAt: now().toISOString(),
+    });
+    const result = store.updateCrop(crop);
+    if (result.kind === "not_found") {
+      return sendError(reply, 404, "not_found", "Crop not found");
+    }
+
+    return CropResponseSchema.parse({
+      schemaVersion: "smartfarm.crop-response.v1",
+      crop: result.crop,
+    });
+  });
+
+  app.delete("/v1/farms/:farmId/crops/:cropId", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = CropPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    if (!store.deleteCrop(params.data.farmId, params.data.cropId)) {
+      return sendError(reply, 404, "not_found", "Crop not found");
+    }
+
+    return reply.code(204).send();
+  });
+
+  app.post("/v1/farms/:farmId/telemetry", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["edge"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    const telemetry = TelemetrySchema.safeParse(request.body);
+    if (!telemetry.success) return sendValidationError(reply, telemetry.error.issues);
+    if (telemetry.data.farmId !== params.data.farmId) {
+      return sendError(reply, 403, "forbidden", "Telemetry farm scope does not match route");
+    }
+    if (store.getDevice(params.data.farmId, telemetry.data.deviceId) === null) {
+      return sendError(reply, 404, "not_found", "Device not found");
+    }
+
+    const result = store.putTelemetry(telemetry.data);
+    if (result.kind === "conflict") {
+      return sendError(reply, 409, "conflict", result.reason);
+    }
+
+    const receipt = TelemetryReceiptSchema.parse({
+      schemaVersion: "smartfarm.telemetry-receipt.v1",
+      status: result.kind === "accepted" ? "accepted" : "replayed",
+      telemetryId: telemetry.data.id,
+      acceptedAt: now().toISOString(),
+    });
+    return reply.code(result.kind === "accepted" ? 202 : 200).send(receipt);
+  });
+
+  app.get(
+    "/v1/farms/:farmId/devices/:deviceId/telemetry/latest",
+    async (request, reply) => {
+      const principal = await requirePrincipal(options.authenticate, request, reply);
+      if (principal === null) return reply;
+      if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+      const params = LatestTelemetryPathParamsSchema.safeParse(request.params);
+      if (!params.success) return sendValidationError(reply, params.error.issues);
+      if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+      if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+      if (store.getDevice(params.data.farmId, params.data.deviceId) === null) {
+        return sendError(reply, 404, "not_found", "Device not found");
+      }
+
+      const query = LatestTelemetryQuerySchema.safeParse(request.query);
+      if (!query.success) return sendValidationError(reply, query.error.issues);
+
+      const telemetry = store.latestTelemetry(
+        params.data.farmId,
+        params.data.deviceId,
+        query.data.metric,
+      );
+      if (telemetry === null) {
+        return sendError(reply, 404, "not_found", "Telemetry not found");
+      }
+
+      return LatestTelemetryResponseSchema.parse({
+        schemaVersion: "smartfarm.latest-telemetry.v1",
+        telemetry,
+      });
+    },
+  );
+
+  app.post("/v1/farms/:farmId/commands", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+    if (!requireStoredFarm(store, params.data.farmId, reply)) return reply;
+
+    const body = CreatePumpCommandRequestSchema.safeParse(request.body);
+    if (!body.success) return sendValidationError(reply, body.error.issues);
+    if (store.getDevice(params.data.farmId, body.data.deviceId) === null) {
+      return sendError(reply, 404, "not_found", "Device not found");
+    }
+
+    const issuedAt = now();
+    const command = CommandSchema.parse({
+      schemaVersion: "smartfarm.command.v1",
+      id: createCommandId(),
+      farmId: params.data.farmId,
+      deviceId: body.data.deviceId,
+      payload: { action: "set_pump_state", state: body.data.state },
+      actor: { type: "user", id: principal.id },
+      idempotencyKey: body.data.idempotencyKey,
+      issuedAt: issuedAt.toISOString(),
+      expiresAt: new Date(issuedAt.getTime() + body.data.ttlSeconds * 1_000).toISOString(),
+    });
+    const result = store.createCommand(command, issuedAt.toISOString());
+
+    if (result.kind === "conflict") {
+      return sendError(reply, 409, "conflict", result.reason);
+    }
+
+    return reply
+      .code(result.kind === "created" ? 202 : 200)
+      .send(CommandProjectionSchema.parse(result.projection));
+  });
+
+  app.get("/v1/farms/:farmId/commands/:commandId", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["user", "admin"], reply)) return reply;
+
+    const params = CommandPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+
+    const projection = store.getCommand(params.data.commandId);
+    if (projection === null || projection.command.farmId !== params.data.farmId) {
+      return sendError(reply, 404, "not_found", "Command not found");
+    }
+
+    return CommandProjectionSchema.parse(projection);
+  });
+
+  app.get("/v1/farms/:farmId/edge/commands/next", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["edge"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+
+    const query = NextCommandQuerySchema.safeParse(request.query);
+    if (!query.success) return sendValidationError(reply, query.error.issues);
+
+    const projection = store.nextPendingCommand(params.data.farmId, query.data.deviceId);
+    if (projection === null) {
+      return reply.code(204).send();
+    }
+
+    return PendingCommandResponseSchema.parse({
+      schemaVersion: "smartfarm.pending-command.v1",
+      command: projection.command,
+    });
+  });
+
+  app.post("/v1/farms/:farmId/command-acks", async (request, reply) => {
+    const principal = await requirePrincipal(options.authenticate, request, reply);
+    if (principal === null) return reply;
+    if (!requireRole(principal, ["edge"], reply)) return reply;
+
+    const params = FarmPathParamsSchema.safeParse(request.params);
+    if (!params.success) return sendValidationError(reply, params.error.issues);
+    if (!requireFarm(principal, params.data.farmId, reply)) return reply;
+
+    const ack = CommandAckSchema.safeParse(request.body);
+    if (!ack.success) return sendValidationError(reply, ack.error.issues);
+    if (ack.data.farmId !== params.data.farmId) {
+      return sendError(reply, 403, "forbidden", "Acknowledgement farm scope does not match route");
+    }
+
+    const result = store.applyAck(ack.data, now().toISOString());
+
+    switch (result.kind) {
+      case "not_found":
+        return sendError(reply, 404, "not_found", "Command not found");
+      case "conflict":
+        return sendError(reply, 409, "conflict", result.reason);
+      case "applied":
+      case "replayed":
+        return reply.code(200).send(CommandProjectionSchema.parse(result.projection));
+      default:
+        return assertNever(result);
+    }
+  });
+
+  return app;
+}
+
+async function requirePrincipal(
+  authenticate: AuthenticateRequest,
+  request: FastifyRequest,
+  reply: FastifyReply,
+): Promise<AuthPrincipal | null> {
+  let principal: AuthPrincipal | null;
+
+  try {
+    principal = await authenticate(request);
+  } catch {
+    sendError(reply, 500, "internal_error", "Authentication service failed");
+    return null;
+  }
+
+  if (principal === null) {
+    sendError(reply, 401, "unauthorized", "Authentication is required");
+    return null;
+  }
+
+  if (!isValidPrincipal(principal)) {
+    sendError(reply, 500, "internal_error", "Authentication service returned invalid context");
+    return null;
+  }
+
+  return principal;
+}
+
+function requireRole(
+  principal: AuthPrincipal,
+  allowed: readonly AuthRole[],
+  reply: FastifyReply,
+): boolean {
+  if (!allowed.includes(principal.role)) {
+    sendError(reply, 403, "forbidden", "Principal role cannot perform this action");
+    return false;
+  }
+
+  return true;
+}
+
+function requireFarm(
+  principal: AuthPrincipal,
+  farmId: FarmId,
+  reply: FastifyReply,
+): boolean {
+  if (!principal.farmIds.includes(farmId)) {
+    sendError(reply, 403, "forbidden", "Principal cannot access this farm");
+    return false;
+  }
+
+  return true;
+}
+
+function requireStoredFarm(
+  store: SmartFarmStore,
+  farmId: FarmId,
+  reply: FastifyReply,
+): boolean {
+  if (store.getFarm(farmId) === null) {
+    sendError(reply, 404, "not_found", "Farm not found");
+    return false;
+  }
+
+  return true;
+}
+
+function isValidPrincipal(principal: AuthPrincipal): boolean {
+  return principal.id.trim().length > 0
+    && (["user", "edge", "admin"] as const).includes(principal.role)
+    && principal.farmIds.length > 0
+    && principal.farmIds.every((farmId) => FarmIdSchema.safeParse(farmId).success);
+}
+
+function sendValidationError(
+  reply: FastifyReply,
+  issues: readonly { readonly path: readonly PropertyKey[]; readonly message: string }[],
+): FastifyReply {
+  return sendError(
+    reply,
+    400,
+    "invalid_request",
+    "Request validation failed",
+    issues.slice(0, 20).map((issue) => ({
+      path: issue.path.length === 0 ? "$" : issue.path.map(String).join("."),
+      message: issue.message,
+    })),
+  );
+}
+
+function sendError(
+  reply: FastifyReply,
+  statusCode: number,
+  code: ApiErrorCode,
+  message: string,
+  issues?: readonly { readonly path: string; readonly message: string }[],
+): FastifyReply {
+  const body = ApiErrorSchema.parse({
+    schemaVersion: "smartfarm.error.v1",
+    code,
+    message,
+    ...(issues === undefined ? {} : { issues }),
+  });
+  return reply.code(statusCode).send(body);
+}
+
+function assertNever(value: never): never {
+  throw new Error(`Unhandled result: ${JSON.stringify(value)}`);
+}
+
+function buildCropRecord(input: CropRecord): CropRecord {
+  return CropRecordSchema.parse(input);
+}

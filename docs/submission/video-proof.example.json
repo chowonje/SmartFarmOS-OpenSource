@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "smartfarm.submission-video-proof.v1",
+  "filePath": "artifacts/submission/smartfarm-demo.mp4",
+  "durationSeconds": 165,
+  "sha256": "replace-with-64-lowercase-hex-characters-after-final-encoding",
+  "reviewed": false
+}

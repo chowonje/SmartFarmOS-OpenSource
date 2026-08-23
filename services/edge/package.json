@@ -1,0 +1,20 @@
+{
+  "name": "@smartfarm-os/edge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "smartfarm-edge": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test \"dist/**/*.test.js\"",
+    "edge": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@smartfarm-os/contracts": "0.1.0"
+  }
+}

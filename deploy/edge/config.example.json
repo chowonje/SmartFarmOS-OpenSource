@@ -1,0 +1,13 @@
+{
+  "apiUrl": "https://smartfarm.example.com",
+  "farmId": "farm:demo",
+  "deviceId": "device:bed-1",
+  "credentialPath": "/var/lib/smartfarm-edge/credential.json",
+  "journalPath": "/var/lib/smartfarm-edge/execution.sqlite",
+  "enrollmentPath": "/v1/gateway-enrollments/exchange",
+  "commandPollIntervalMs": 1000,
+  "stopPollIntervalMs": 250,
+  "telemetryIntervalMs": 5000,
+  "requestTimeoutMs": 5000,
+  "maxResponseBytes": 1048576
+}

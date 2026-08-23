@@ -1,0 +1,32 @@
+.DS_Store
+Thumbs.db
+
+# Dependencies and generated output
+**/node_modules/
+**/build/
+**/dist/
+**/coverage/
+**/.next/
+**/.expo/
+*.log
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+
+# Local configuration and credentials
+**/.env
+**/.env.*
+!**/.env.example
+**/serviceAccountKey.json
+**/*service-account*.json
+**/*.pem
+**/*.key
+
+# Local control-plane and tool artifacts
+.codex/
+.devmap/
+.omo/
+.local-deps/
+artifacts/
+.playwright-cli/
+output/
