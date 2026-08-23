@@ -40,8 +40,6 @@ test("parses strict rehearsal arguments and rejects missing values", () => {
 test("keeps rehearsal writes inside ignored artifact roots and requires explicit overwrite", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "smartfarm-submission-output-"));
   t.after(() => rm(root, { recursive: true, force: true }));
-  await mkdir(join(root, "artifacts", "submission"), { recursive: true });
-  await mkdir(join(root, "artifacts", "usability"), { recursive: true });
 
   const safe = parseArguments([
     "--out", "artifacts/submission/new-rehearsal",

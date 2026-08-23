@@ -563,6 +563,7 @@ async function resolveSafeOutputDirectory(root, requestedPath, allowedRelativePa
     }
   }
 
+  await mkdir(allowedDirectory, { recursive: true });
   const resolvedAllowedDirectory = await realpath(allowedDirectory);
   await mkdir(outputDirectory, { recursive: true });
   const resolvedOutputDirectory = await realpath(outputDirectory);
