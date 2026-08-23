@@ -291,6 +291,7 @@ test("real child CLI uses a fake ffprobe on PATH and writes a sanitized proof", 
   const proofPath = join(repositoryRoot, proofRelativePath);
   t.after(() => rm(videoPath, { force: true }));
   t.after(() => rm(proofPath, { force: true }));
+  await mkdir(dirname(videoPath), { recursive: true });
   await writeFile(videoPath, "reviewed-video-binary", "utf8");
 
   const fakeBinDirectory = await mkdtemp(join(tmpdir(), "smartfarm-fake-ffprobe-"));
