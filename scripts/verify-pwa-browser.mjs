@@ -37,11 +37,7 @@ async function runBrowserSmokeWithPortRetry(executablePath) {
 async function runBrowserSmoke(executablePath) {
   const directory = await mkdtemp(join(tmpdir(), "smartfarm-pwa-browser-"));
   const apiPort = await reserveLoopbackPort();
-  const pwaPort = await reserveLoopbackPort();
-  let adminPort = await reserveLoopbackPort();
-  while (adminPort === apiPort || adminPort === pwaPort) {
-    adminPort = await reserveLoopbackPort();
-  }
+  const [pwaPort, adminPort] = await reserveAdjacentLoopbackPorts(new Set([apiPort]));
   const pwaUrl = `http://127.0.0.1:${pwaPort}/`;
   const adminUrl = `http://127.0.0.1:${adminPort}/`;
   let launcher = null;
@@ -1157,6 +1153,52 @@ async function reserveLoopbackPort() {
     error === undefined ? resolve() : reject(error)
   )));
   return address.port;
+}
+
+async function reserveAdjacentLoopbackPorts(excludedPorts) {
+  for (let attempt = 0; attempt < 50; attempt += 1) {
+    const pwaServer = createServer();
+    await listenOnLoopback(pwaServer, 0);
+    const pwaAddress = pwaServer.address();
+    assert.ok(pwaAddress !== null && typeof pwaAddress === "object");
+    const pwaPort = pwaAddress.port;
+    const adminPort = pwaPort + 1;
+
+    if (adminPort >= 65_535 || excludedPorts.has(pwaPort) || excludedPorts.has(adminPort)) {
+      await closeServer(pwaServer);
+      continue;
+    }
+
+    const adminServer = createServer();
+    try {
+      await listenOnLoopback(adminServer, adminPort);
+    } catch (error) {
+      await closeServer(pwaServer);
+      if (error instanceof Error && /EADDRINUSE|address already in use/i.test(error.message)) {
+        continue;
+      }
+      throw error;
+    }
+
+    await Promise.all([closeServer(pwaServer), closeServer(adminServer)]);
+    return [pwaPort, adminPort];
+  }
+
+  throw new Error("Unable to reserve adjacent PWA and admin loopback ports");
+}
+
+function listenOnLoopback(server, port) {
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(port, "127.0.0.1", resolve);
+  });
+}
+
+function closeServer(server) {
+  if (!server.listening) return Promise.resolve();
+  return new Promise((resolve, reject) => server.close((error) => (
+    error === undefined ? resolve() : reject(error)
+  )));
 }
 
 async function waitForHttp(url, launcher, readOutput) {

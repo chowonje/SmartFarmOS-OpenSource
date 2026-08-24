@@ -39,6 +39,7 @@ security, availability, backup, or physical-device certification.
 - [Field-test checklist](testing/field-test-checklist.md)
 - [Usability field-test protocol](usability/field-test-protocol.md)
 - [Submission guide](submission/README.md)
+- [Cloud productization and submission priorities](submission/cloud-productization-plan.md)
 - [Public-release and contest gate checklist](submission/release-checklist.md)
 - [Provenance review](provenance.md)
 

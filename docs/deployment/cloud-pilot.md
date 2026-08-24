@@ -1,118 +1,134 @@
-# Cloud Pilot Packaging
+# Cloud Pilot: Rootful Podman on Rocky Linux 8.10
 
-This deployment is for the August 10, 2026 contest/demo window and a tightly
-controlled pilot only. It packages the existing simulator-backed local demo
-behind Caddy so the browser still talks to `/api` on the same origin, while the
-demo key stays server-side.
+This is the contest/final-product pilot path for SmartFarmOS. It deploys the existing simulator-backed PWA behind HTTPS and Basic Auth so the final demo can be evaluated on a real VM without exposing a developer machine.
 
-It is not a production release. It does not add real identity, device
-provisioning, MQTT transport, telemetry buffering, hardware-safe pump
-interlocks, or production database operations.
+It is deliberately not a production farm-control deployment. It does not add production identity, hardware safety interlocks, MQTT, telemetry buffering, or production database operations.
 
-## What This Package Does
+## What Is Exposed
 
-- builds the existing monorepo once inside Docker
-- runs `node scripts/run-local-demo.mjs --preview`
-- serves the built PWA through Vite preview on loopback only
-- fronts the preview with Caddy for HTTPS and outer Basic Auth
-- persists the central API and Edge SQLite files on a named Docker volume
-- exposes only ports `80` and `443` from the VM
+The only public listeners are `80/tcp` and `443/tcp` on Caddy. Caddy serves the PWA and the simulator-backed API behind the same origin. The API, PWA preview, and admin app stay on container loopback; `3100`, `4173`, and `4174` are never published and Caddy has no admin route. The optional weather key is server-only and may be blank for the reproducible fixture mode.
 
-Because the bundled demo runtime already binds the API and preview servers to
-`127.0.0.1`, Caddy and the demo run in the same container. That keeps the demo
-key out of the browser bundle without changing application code.
+SQLite and Caddy certificate/config state use named Podman volumes. Each mount uses `:Z`, so the rootful Podman container has the SELinux label it needs on Rocky Linux.
 
-## Prepare Secrets
+## Server Preconditions
 
-1. Copy `deploy/cloud-pilot/.env.example` to `deploy/cloud-pilot/.env`.
-2. Set `SMARTFARM_SITE_ADDRESS` to the exact public domain for the VM.
-3. Generate a Basic Auth hash without putting the plaintext password in shell
-   history or the process list:
+- Rocky Linux 8.10 with **rootful Podman 4.9.4** available to the operator.
+- Run the commands as `root` in the Rocky web terminal, or as an operator already configured for the rootful Podman service; the documented commands do not rely on `sudo`.
+- Standard base utilities: `/bin/sh`, `tar`, `mktemp`, `awk`, `sha256sum`, and `chmod`.
+- No host Node.js, Git, Docker, Docker Compose, or Caddy installation is required.
+- Host ports `80` and `443` are free and permitted by the VM/cloud firewall.
+- A public DNS record for the final domain points at the VM before Caddy starts. Automatic HTTPS also needs outbound access to the ACME service.
+- A reviewed public-release source archive and its exact Git commit SHA are available. Do not build contest deployment images from a private or dirty working tree.
 
-   ```bash
-   npm run cloud-pilot:hash-password
-   ```
+## Prepare the VM
 
-   The command reads from stdin when `--plaintext` is omitted; on a TTY the
-   password is not echoed.
+On the trusted release workstation, calculate the reviewed archive's SHA-256
+**before** transferring it and keep that expected value in the deployment
+record. Copy the archive to the VM, compare the VM's actual digest with the
+separately retained expected value, then unpack it only to obtain the deployment
+helper. Recalculating both the archive and its expected value on the VM does not
+authenticate the source.
 
-4. Put the chosen username in `SMARTFARM_BASIC_AUTH_USER`.
-5. Put the generated hash in `SMARTFARM_BASIC_AUTH_HASH`, wrapped in single
-   quotes so it stays literal in `.env`:
-
-   ```dotenv
-   SMARTFARM_BASIC_AUTH_HASH='$2a$14$replace-with-your-generated-hash'
-   ```
-
-   Docker Compose applies interpolation to unquoted and double-quoted `.env`
-   values, while single-quoted values are literal. The local wrapper script
-   strips those single quotes before it hands the value to Compose.
-
-6. Generate a random demo key and set `SMARTFARM_DEMO_KEY`:
-
-   ```bash
-   node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
-   ```
-
-7. Optional: leave `SMARTFARM_OPENWEATHER_API_KEY` blank for the reproducible
-   fixture, or set a newly issued server-side key to enable the fixed official
-   OpenWeather endpoint. See [weather-provider.md](./weather-provider.md).
-
-Do not commit `deploy/cloud-pilot/.env`.
-
-## Start And Stop
-
-Start the pilot stack:
-
-```bash
-npm run cloud-pilot:up
+```sh
+sha256sum SmartFarmOS-public-release.tar.gz  # run first on the release workstation
+# After transfer, run on the VM and compare with the retained workstation value:
+sha256sum SmartFarmOS-public-release.tar.gz
+tar -xzf SmartFarmOS-public-release.tar.gz
+cd SmartFarmOS-public-release/deploy/cloud-pilot
+chmod 700 podman.sh
 ```
 
-Tail logs:
+Create a separate, mode-600 pilot environment file outside the source archive, for example `~/smartfarm-pilot.env`:
 
-```bash
-npm run cloud-pilot:logs
+```dotenv
+SMARTFARM_SITE_ADDRESS=demo.example.org
+SMARTFARM_BASIC_AUTH_USER=
+SMARTFARM_BASIC_AUTH_HASH=
+SMARTFARM_DEMO_KEY=
+SMARTFARM_OPENWEATHER_API_KEY=
 ```
 
-Stop the pilot stack:
+Do not commit, archive, email, or paste this file into an issue. The helper accepts only those five names and does not source or evaluate the file. A single-quoted bcrypt value is normalized safely, so this is valid:
 
-```bash
-npm run cloud-pilot:down
+```dotenv
+SMARTFARM_BASIC_AUTH_HASH='$2a$14$replace-with-a-new-hash'
 ```
 
-## Runtime Layout
+Generate the hash with Podman, not a host Caddy binary:
 
-```text
-browser
-  -> HTTPS + Basic Auth
-  -> Caddy
-  -> Vite preview (127.0.0.1:4173)
-  -> local demo API proxy
-  -> local demo API (127.0.0.1:3100)
-  -> SQLite in /data/smartfarm-demo.sqlite
-  -> Edge SQLite in /data/smartfarm-demo.sqlite.edge.sqlite
+```sh
+podman run --rm -it caddy:2.10 caddy hash-password
 ```
 
-`/healthz` is intentionally left outside Basic Auth and rewrites to the local
-demo API `/health` endpoint so a VM or external monitor can check liveness
-without touching app routes.
+Generate the demo key with the Rocky base system, then paste the result into the file; do not put it in shell history:
 
-## Access Control Notes
+```sh
+head -c 32 /dev/urandom | base64
+chmod 600 ~/smartfarm-pilot.env
+```
 
-- The browser never receives `SMARTFARM_DEMO_KEY`.
-- The optional weather key is passed only to the server process and is never a
-  `PUBLIC_` build variable.
-- The app container does not publish ports `3100` or `4173`.
-- The only public entrypoint is Caddy on `80/443`.
-- Basic Auth is mandatory; the compose file refuses empty credentials.
-- `npm run cloud-pilot:*` reads `deploy/cloud-pilot/.env` itself, so a quoted
-  bcrypt hash is passed through literally and Compose does not reinterpret it.
+Leave `SMARTFARM_OPENWEATHER_API_KEY` empty for fixture mode. If live weather is needed for a limited pilot, use a newly issued, restricted server key; see [weather-provider.md](./weather-provider.md).
 
-## Residual Risks
+## Build and Start
 
-- Basic Auth is only an outer gate for a contest/pilot environment.
-- The payload behind Caddy is still simulator-backed.
-- Automatic HTTPS depends on a working public DNS record for
-  `SMARTFARM_SITE_ADDRESS`.
-- The packaged runtime inherits the current local demo limitations documented in
-  `README.md` and the architecture notes.
+Use the exact public commit, the expected SHA-256 retained from the trusted
+release workstation, and a meaningful immutable image tag. `--commit` is an
+operator claim recorded on the image; the required `--archive-sha256` checks
+that the VM received the same source bytes. The helper rejects archives over
+512 MiB, archive paths outside one top-level directory, and non-regular tar
+members such as links, devices, and FIFOs before it extracts or builds them.
+
+```sh
+./podman.sh build \
+  --archive ../../../SmartFarmOS-public-release.tar.gz \
+  --archive-sha256 <copy-the-trusted-lowercase-64-character-sha256> \
+  --commit 4af586a47b9da9a7a1220f05b1318460f1031ede \
+  --image smartfarm-os-cloud-pilot:2026-final
+
+./podman.sh up \
+  --env ~/smartfarm-pilot.env \
+  --image smartfarm-os-cloud-pilot:2026-final
+
+./podman.sh status
+./podman.sh logs --follow
+```
+
+`up` refuses to start if `smartfarm-cloud-pilot` already exists. It never silently replaces a running pilot. Container and volume names are fixed by the helper rather than environment overrides. `down` additionally requires the helper's ownership label before it can stop or remove a same-named container. The helper creates three named volumes when absent: one for the API/Edge SQLite pair, and two for Caddy state.
+
+The container has an internal health check for the local demo API. After it reports `healthy`, confirm the actual route and the browser experience:
+
+```sh
+curl --fail --silent --show-error https://demo.example.org/healthz
+```
+
+Open the root URL in a browser. It must request Basic Auth, load the PWA, and must not offer a reachable admin console. The health endpoint is deliberately outside Basic Auth so a VM monitor can use it; it reveals only liveness.
+
+## Stop, Logs, and Rollback
+
+```sh
+./podman.sh logs --tail 200
+./podman.sh down
+```
+
+`down` stops and removes only the named container. It preserves the image and all named volumes, including SQLite and Caddy certificates. It never removes volumes automatically.
+
+For a rollback, keep the previously verified image tag. Stop the failed container yourself, then explicitly start the previous image against the preserved volumes:
+
+```sh
+./podman.sh down
+./podman.sh up --env ~/smartfarm-pilot.env --image smartfarm-os-cloud-pilot:previous
+./podman.sh status
+```
+
+Rollback is safe only when the release notes confirm database compatibility. Before any version that changes persisted SQLite schema or data meaning, back up the named data volume and rehearse restoring it on a non-public VM.
+
+## Local Packaging Check
+
+On a development machine, before creating the public source archive, run:
+
+```sh
+npm run cloud-pilot:verify
+node --test scripts/podman-cloud-pilot.test.mjs
+```
+
+The `npm run cloud-pilot:podman:*` aliases are conveniences for a development machine with npm. They are not required on the Rocky VM; use `podman.sh` directly there.

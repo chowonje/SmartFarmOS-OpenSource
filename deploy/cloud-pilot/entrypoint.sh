@@ -1,15 +1,13 @@
 #!/bin/sh
 set -eu
 
-required_vars="SMARTFARM_SITE_ADDRESS SMARTFARM_BASIC_AUTH_USER SMARTFARM_BASIC_AUTH_HASH SMARTFARM_DEMO_KEY"
-
-for name in $required_vars; do
-  eval "value=\${$name:-}"
-  if [ -z "$value" ]; then
-    echo "[smartfarm-cloud-pilot] missing required environment variable: $name" >&2
-    exit 1
-  fi
-done
+if [ -z "${SMARTFARM_SITE_ADDRESS:-}" ] \
+  || [ -z "${SMARTFARM_BASIC_AUTH_USER:-}" ] \
+  || [ -z "${SMARTFARM_BASIC_AUTH_HASH:-}" ] \
+  || [ -z "${SMARTFARM_DEMO_KEY:-}" ]; then
+  echo "[smartfarm-cloud-pilot] a required environment variable is missing" >&2
+  exit 1
+fi
 
 node /app/scripts/run-local-demo.mjs --preview &
 app_pid=$!

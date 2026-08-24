@@ -108,12 +108,14 @@ required_files=(
   "scripts/run-cloud-pilot-compose.test.mjs"
   "scripts/verify-cloud-pilot-package.mjs"
   "scripts/verify-cloud-pilot-package.test.mjs"
+  "scripts/podman-cloud-pilot.test.mjs"
   "deploy/cloud-pilot/.env.example"
   "deploy/cloud-pilot/Caddyfile"
   "deploy/cloud-pilot/Dockerfile"
   "deploy/cloud-pilot/Dockerfile.dockerignore"
   "deploy/cloud-pilot/docker-compose.yml"
   "deploy/cloud-pilot/entrypoint.sh"
+  "deploy/cloud-pilot/podman.sh"
   "services/api/package.json"
   "services/api/src/app.ts"
   "services/api/src/auth.ts"
@@ -187,7 +189,7 @@ node scripts/verify-cloud-pilot-package.mjs >/dev/null
 node scripts/create-demo-video.mjs --help >/dev/null
 node scripts/create-video-proof.mjs --help >/dev/null
 node scripts/rehearse-submission.mjs --help >/dev/null
-node --test scripts/record-usability-result.test.mjs scripts/summarize-usability-results.test.mjs scripts/verify-dependency-licenses.test.mjs scripts/verify-github-actions-pins.test.mjs scripts/create-demo-video.test.mjs scripts/create-video-proof.test.mjs scripts/rehearse-submission.test.mjs scripts/run-cloud-pilot-compose.test.mjs scripts/verify-cloud-pilot-package.test.mjs
+node --test scripts/record-usability-result.test.mjs scripts/summarize-usability-results.test.mjs scripts/verify-dependency-licenses.test.mjs scripts/verify-github-actions-pins.test.mjs scripts/create-demo-video.test.mjs scripts/create-video-proof.test.mjs scripts/rehearse-submission.test.mjs scripts/run-cloud-pilot-compose.test.mjs scripts/verify-cloud-pilot-package.test.mjs scripts/podman-cloud-pilot.test.mjs
 
 duplicate_sources="$(
   find apps packages services tools \

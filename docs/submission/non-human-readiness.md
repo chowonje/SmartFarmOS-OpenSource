@@ -13,7 +13,7 @@ privacy preflight. 최신 `npm run submission:rehearse`는 2026-08-10에 실행�
 | --- | --- | --- |
 | 전체 저장소 검증 | PASS | `npm run verify` 통과 |
 | 제품 테스트 | PASS | workspace 테스트 304개 통과 |
-| 제출/도구 게이트 테스트 | PASS | Node TAP 테스트 80개 통과 |
+| 제출/도구 게이트 테스트 | PASS | Node TAP 테스트 89개 통과 |
 | 브라우저/PWA 스모크 | PASS | `smoke:pwa`, `smoke:pwa:browser` 통과 |
 | 날씨 vertical slice | PASS | 농장 범위 계약/API/PWA fixture 흐름과 live adapter mock 경계 통과 |
 | 클라우드 파일럿 패키징 | PASS | 인증·비밀값·볼륨·공개 포트 정적 검증 7개 통과; 실제 Docker 기동은 미검증 |
@@ -49,4 +49,4 @@ privacy preflight. 최신 `npm run submission:rehearse`는 2026-08-10에 실행�
 
 - 최신 리허설 보고서는 `artifacts/submission/rehearsal/report.md`에 있다.
 - 최신 전체 공개 후보 privacy 수치는 `artifacts/privacy-preflight-publication-20260824/report.md` 기준이다.
-- 총 기계 테스트 수는 `304 + 80 = 384`이다.
+- 총 기계 테스트 수는 `304 + 89 = 393`이다.

@@ -14,6 +14,8 @@ const requiredFiles = [
   "deploy/cloud-pilot/Dockerfile.dockerignore",
   "deploy/cloud-pilot/docker-compose.yml",
   "deploy/cloud-pilot/entrypoint.sh",
+  "deploy/cloud-pilot/podman.sh",
+  "scripts/podman-cloud-pilot.test.mjs",
   "docs/deployment/cloud-pilot.md",
   "docs/deployment/cloud-pilot-checklist.md",
 ];
@@ -34,6 +36,7 @@ export async function inspectCloudPilotPackage(root = repositoryRoot) {
   const dockerfile = await readRequired(root, "deploy/cloud-pilot/Dockerfile", issues);
   const dockerignore = await readRequired(root, "deploy/cloud-pilot/Dockerfile.dockerignore", issues);
   const envExample = await readRequired(root, "deploy/cloud-pilot/.env.example", issues);
+  const podmanScript = await readRequired(root, "deploy/cloud-pilot/podman.sh", issues);
   const guide = await readRequired(root, "docs/deployment/cloud-pilot.md", issues);
   const checklist = await readRequired(root, "docs/deployment/cloud-pilot-checklist.md", issues);
 
@@ -78,6 +81,33 @@ export async function inspectCloudPilotPackage(root = repositoryRoot) {
     assertIncludes(dockerfile, "COPY apps/admin/package.json", issues, "Dockerfile must include the admin workspace manifest");
     assertIncludes(dockerfile, "COPY apps/admin apps/admin", issues, "Dockerfile must include the admin workspace source");
     assertIncludes(dockerfile, "COPY deploy/cloud-pilot/entrypoint.sh", issues, "Dockerfile must install the pilot entrypoint");
+  }
+
+  if (podmanScript !== null) {
+    assertIncludes(podmanScript, "#!/bin/sh", issues, "Podman helper must use POSIX sh");
+    assertIncludes(podmanScript, "Podman is required", issues, "Podman helper must fail clearly when Podman is unavailable");
+    assertIncludes(podmanScript, "--archive-sha256", issues, "Podman helper must require a source archive SHA-256");
+    assertIncludes(podmanScript, "sha256sum", issues, "Podman helper must calculate the source archive SHA-256");
+    assertIncludes(podmanScript, "tar -tvf", issues, "Podman helper must reject non-regular archive members");
+    assertIncludes(podmanScript, "MAX_ARCHIVE_BYTES=536870912", issues, "Podman helper must cap practical archive size");
+    assertIncludes(podmanScript, "--env-file \"$normalized_env_file\"", issues, "Podman helper must pass a normalized private env file");
+    assertIncludes(podmanScript, "chmod 600 \"$normalized_env_file\"", issues, "Podman helper must protect its temporary env file");
+    assertIncludes(podmanScript, "trap cleanup EXIT HUP INT TERM", issues, "Podman helper must clean up temporary files");
+    assertIncludes(podmanScript, "--publish 80:80", issues, "Podman helper must publish HTTP");
+    assertIncludes(podmanScript, "--publish 443:443", issues, "Podman helper must publish HTTPS");
+    assertIncludes(podmanScript, ":/data:Z", issues, "Podman helper must relabel the SQLite volume for SELinux");
+    assertIncludes(podmanScript, ":/srv/caddy-data:Z", issues, "Podman helper must relabel the Caddy data volume for SELinux");
+    assertIncludes(podmanScript, "podman container exists", issues, "Podman helper must refuse an existing pilot container");
+    assertIncludes(podmanScript, "io.smartfarm.cloud-pilot.managed", issues, "Podman helper must require an ownership label before removal");
+    if (/\beval\b/u.test(podmanScript) || /(^|[;\n])\s*source\s+/mu.test(podmanScript)) {
+      issues.push("Podman helper must not evaluate or source the pilot env file");
+    }
+    if (/--replace/u.test(podmanScript)) {
+      issues.push("Podman helper must not automatically replace an existing pilot container");
+    }
+    if (/SMARTFARM_CLOUD_PILOT_(?:CONTAINER|DATA_VOLUME|CADDY_DATA_VOLUME|CADDY_CONFIG_VOLUME)/u.test(podmanScript)) {
+      issues.push("Podman helper must not permit environment overrides for fixed container or volume targets");
+    }
   }
 
   if (dockerignore !== null) {

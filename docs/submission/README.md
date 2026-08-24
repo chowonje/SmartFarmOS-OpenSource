@@ -12,6 +12,9 @@ only when applicable. The report must include the mandatory SBOM, one public
 repository URL, and a YouTube URL for a demo no longer than three minutes.
 See [official-requirements.md](./official-requirements.md) for the exact flow,
 source-publication terms, AI ambiguity, and the remaining owner-only facts.
+Use [cloud-productization-plan.md](./cloud-productization-plan.md) to keep the
+approved one-month cloud resource subordinate to the mandatory submission
+gates and to separate contest staging from post-contest production work.
 
 ## Rehearsal order
 
@@ -69,7 +72,7 @@ The latest local rehearsal ran on 2026-08-10 and remained **BLOCK** with
 `artifacts/submission/rehearsal/report.{md,json}`.
 
 - `SMARTFARM_REQUIRE_BROWSER=1 npm run verify` passed again on 2026-08-24 with 304 workspace tests,
-  80 submission/tool tests, and the browser smoke.
+  89 submission/tool tests, and the browser smoke.
 - `npm run submission:license-audit` passed for 155 external package entries.
 - The 2026-08-24 full publication-candidate privacy preflight considered 271
   files and scanned 268 text files. A high-confidence source/history check found

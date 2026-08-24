@@ -82,8 +82,8 @@ Device Simulator
   관수 적용→poll 실패→복구→ACK/audit, 실행 중 software stop→causal history,
   수동 ACK→`농장 공통 제어` 감사,
   mobile/same-session offline 보존 통과
-- 현재 workspace 테스트 304개와 제출/도구 게이트 스크립트 테스트 80개,
-  총 384개 기계 테스트를 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`에서 다시 확인
+- 현재 workspace 테스트 304개와 제출/도구 게이트 스크립트 테스트 89개,
+  총 393개 기계 테스트를 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`에서 다시 확인
 - package-lock v3의 외부 패키지 155개 모두에서 선언 라이선스를 확인함.
   이는 선언 누락 검사이며 프로젝트 라이선스 선택·호환성 승인은 아님
 - 2026-08-24 별도 `npm audit --audit-level=moderate`에서 알려진 vulnerability 0개를 확인함.
@@ -107,9 +107,11 @@ Device Simulator
 simulator, PWA, 결정적 검증은 새 경계에서 작성했다.
 
 프로젝트 소유자는 2026-08-24 기존·현재 코드를 단독 작성했고 동일 성과의
-중복수혜가 없다고 확인했다. 교육기관, 기간, 계약상 재사용 제한, 제3자 자산,
-신규 커밋 범위는 [provenance.md](../provenance.md)의 남은 증거를 확인한 후
-최종 보고서에 적는다.
+중복수혜가 없다고 확인했다. 이후 확인된 모두의 AI 실험실 무상 클라우드
+자원의 현물성 공공지원 해당 여부는 운영사 답변으로 분류한 뒤 확인서 제출
+여부를 정한다. 교육기관, 기간, 계약상 재사용 제한, 제3자 자산, 신규 커밋
+범위는 [provenance.md](../provenance.md)의 남은 증거를 확인한 후 최종
+보고서에 적는다.
 
 ## 7. 한계와 다음 게이트
 
@@ -125,7 +127,8 @@ simulator, PWA, 결정적 검증은 새 경계에서 작성했다.
 ## 8. 최종화 조건
 
 - [ ] 실제 사용성 집계 수치를 5절에 반영했다.
-- [x] 단독 작성·중복수혜 없음·Apache-2.0 선택을 소유자가 확인했다.
+- [ ] 단독 작성·Apache-2.0 선택을 확인했고, 무상 클라우드 자원의
+  중복수혜 확인 대상 여부를 운영사 답변으로 분류했다.
 - [ ] 자격증명·계약 제한·제3자 자산·AI 사용 검토를 완료했다.
 - [x] 공식 서식의 구조로 DOCX/PDF 비업로드 초안을 만들었다.
 - [ ] DOCX/PDF의 모든 placeholder를 소유자가 확인한 사실로 교체했다.
