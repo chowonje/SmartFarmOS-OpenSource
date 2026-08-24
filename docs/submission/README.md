@@ -72,7 +72,7 @@ The latest local rehearsal ran on 2026-08-10 and remained **BLOCK** with
 `artifacts/submission/rehearsal/report.{md,json}`.
 
 - `SMARTFARM_REQUIRE_BROWSER=1 npm run verify` passed again on 2026-08-24 with 304 workspace tests,
-  89 submission/tool tests, and the browser smoke.
+  90 submission/tool tests (394 total), and the browser smoke.
 - `npm run submission:license-audit` passed for 155 external package entries.
 - The 2026-08-24 public-tip fresh clone contains 273 tracked files; the privacy
   preflight scanned 270 text files, while its three skipped PNG icons contain

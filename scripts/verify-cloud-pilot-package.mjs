@@ -73,6 +73,9 @@ export async function inspectCloudPilotPackage(root = repositoryRoot) {
     if (!/handle\s*\{\s*basic_auth\s*\{[\s\S]*?reverse_proxy\s+127\.0\.0\.1:4173[\s\S]*?\}/u.test(caddyfile)) {
       issues.push("Caddyfile must keep Basic Auth and the preview proxy inside one fallback handle");
     }
+    if (!/reverse_proxy\s+127\.0\.0\.1:4173\s*\{[\s\S]*?header_up\s+Host\s+\{upstream_hostport\}[\s\S]*?\}/u.test(caddyfile)) {
+      issues.push("Caddyfile must rewrite the preview Host header for Vite");
+    }
   }
 
   if (dockerfile !== null) {

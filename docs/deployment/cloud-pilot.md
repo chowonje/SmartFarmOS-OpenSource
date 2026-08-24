@@ -6,7 +6,7 @@ It is deliberately not a production farm-control deployment. It does not add pro
 
 ## What Is Exposed
 
-The only public listeners are `80/tcp` and `443/tcp` on Caddy. Caddy serves the PWA and the simulator-backed API behind the same origin. The API, PWA preview, and admin app stay on container loopback; `3100`, `4173`, and `4174` are never published and Caddy has no admin route. The optional weather key is server-only and may be blank for the reproducible fixture mode.
+The only public listeners are `80/tcp` and `443/tcp` on Caddy. Caddy serves the PWA and the simulator-backed API behind the same origin. The API, PWA preview, and admin app stay on container loopback; `3100`, `4173`, and `4174` are never published and Caddy has no admin route. Caddy also normalizes the PWA upstream `Host` to the loopback target after matching the configured public site address, so Vite's preview host protection does not need a wildcard exception. The optional weather key is server-only and may be blank for the reproducible fixture mode.
 
 SQLite and Caddy certificate/config state use named Podman volumes. Each mount uses `:Z`, so the rootful Podman container has the SELinux label it needs on Rocky Linux.
 

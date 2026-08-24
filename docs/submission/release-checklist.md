@@ -12,7 +12,7 @@ PASS는 두 범주 어느 쪽도 자동으로 승인하지 않는다.
 
 | 게이트 | 현재 상태 | 통과 증거 |
 | --- | --- | --- |
-| 기능·회귀 검증 | PASS | 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`, workspace 테스트 304개 + 제출/도구 테스트 89개(총 393), Chrome 브라우저 스모크 |
+| 기능·회귀 검증 | PASS | 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`, workspace 테스트 304개 + 제출/도구 테스트 90개(총 394), Chrome 브라우저 스모크 |
 | 실제 농업 사용자 검증 | BLOCK | 3–5명 익명 세션과 `smartfarm.usability-summary.v1` PASS |
 | 자격증명 회전 | BLOCK | [credential-rotation.md](../credential-rotation.md) 모든 owner item 완료 |
 | 코드 작성자·중복수혜 | BLOCK | 단독 작성은 2026-08-24 확인됨; 승인된 무상 AI Testbed 클라우드 자원이 확인서 대상 공공지원인지 운영사 답변 필요 |

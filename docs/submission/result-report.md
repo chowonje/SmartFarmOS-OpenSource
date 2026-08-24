@@ -82,8 +82,8 @@ Device Simulator
   관수 적용→poll 실패→복구→ACK/audit, 실행 중 software stop→causal history,
   수동 ACK→`농장 공통 제어` 감사,
   mobile/same-session offline 보존 통과
-- 현재 workspace 테스트 304개와 제출/도구 게이트 스크립트 테스트 89개,
-  총 393개 기계 테스트를 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`에서 다시 확인
+- 현재 workspace 테스트 304개와 제출/도구 게이트 스크립트 테스트 90개,
+  총 394개 기계 테스트를 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`에서 다시 확인
 - package-lock v3의 외부 패키지 155개 모두에서 선언 라이선스를 확인함.
   이는 선언 누락 검사이며 프로젝트 라이선스 선택·호환성 승인은 아님
 - 2026-08-24 별도 `npm audit --audit-level=moderate`에서 알려진 vulnerability 0개를 확인함.
