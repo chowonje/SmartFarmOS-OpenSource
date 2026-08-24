@@ -14,18 +14,18 @@ PASS는 두 범주 어느 쪽도 자동으로 승인하지 않는다.
 | --- | --- | --- |
 | 기능·회귀 검증 | PASS | 2026-08-24 `SMARTFARM_REQUIRE_BROWSER=1 npm run verify`, workspace 테스트 304개 + 제출/도구 테스트 90개(총 394), Chrome 브라우저 스모크 |
 | 실제 농업 사용자 검증 | BLOCK | 3–5명 익명 세션과 `smartfarm.usability-summary.v1` PASS |
-| 자격증명 회전 | BLOCK | [credential-rotation.md](../credential-rotation.md) 모든 owner item 완료 |
+| 공개 자격증명 경계 | WARN | 공개 이력·템플릿에 실제 비밀값 0; 레거시 provider 연동은 제외·비활성화했으며 재사용 전 회전 필수 |
 | 코드 작성자·중복수혜 | BLOCK | 단독 작성은 2026-08-24 확인됨; 승인된 무상 AI Testbed 클라우드 자원이 확인서 대상 공공지원인지 운영사 답변 필요 |
 | 기존 성과·저작권 출처 | BLOCK | 단독 작성은 확인됨; 교육기관·기간·계약 제한·제3자 자산·신규 범위 기록 필요 |
 | 오픈소스 라이선스 | PASS | 소유자 선택 Apache-2.0, 루트 `LICENSE`와 package metadata |
 | AI 사용 고지 | BLOCK | 소유자가 실제 사용 범위를 검토한 최종본 |
 | 개발/결과보고서 | BLOCK | 공식 DOCX/PDF 초안의 placeholder 제거·본문 5쪽·동일 내용 확인·수치/라이선스 확정 |
 | 3분 이내 시연영상 | BLOCK | 검토된 영상의 길이·SHA-256 로컬 증거 |
-| Git 재현성·공개 | BLOCK | 최종 commit push, Public 대표 저장소, fresh clone 검증, 보고서의 commit/ref 기록 필요 |
-| 공개 파일 선별 | BLOCK | `.codex/` 5개는 로컬 보존·Git 추적 해제 완료. 최초 커밋에는 남아 있어 해당 커밋을 노출하지 않는 공개 이력 확정 필요 |
+| Git 재현성·공개 | BLOCK | `SmartFarmOS-OpenSource` Public 저장소 push와 익명 fresh clone 검증, 보고서의 commit/ref 기록 필요 |
+| 공개 파일 선별 | PASS | private `main`과 공통 조상이 없는 독립 이력, tracked 273개, `.codex/`·환경파일·산출물 제외 |
 | 중복수혜 확인서 | BLOCK | 소유자는 중복수혜 없음으로 확인했으나 무상 클라우드 자원 분류 후 ZIP 포함 여부를 최종 결정 |
 | ZIP·포털 완료 | BLOCK | 원본+동일 PDF+(해당 시 중복수혜 확인서) ZIP, `제출 완료` 상태와 완료 이메일 |
-| 개인정보·비밀정보 사전점검 | BLOCK | 2026-08-24 공개 브랜치 tracked 파일 273개 중 텍스트 270개 점검: 고신뢰 API 키·개인키와 공개 Git 이력 시그니처 0, PNG 3개 메타데이터 없음. 일반 휴리스틱의 `credential_assignment` 12건은 코드/테스트 오탐으로 검토했지만 raw 보고서는 BLOCK, 광범위한 WARN 1,100건 이상, `opf` 미설치 |
+| 개인정보·비밀정보 사전점검 | BLOCK(자동) / WARN(owner) | tracked 273개/텍스트 270개/전체 공개 이력에서 실제 고신뢰 비밀값 0. raw `credential_assignment` BLOCK 12건은 전부 코드·테스트 오탐으로 검토했고 owner가 WARN 공개를 승인함. `opf` 미설치로 privacy PASS는 아님 |
 
 기계적으로 끝난 항목만 따로 보려면 [non-human-readiness.md](./non-human-readiness.md)를 본다.
 

@@ -18,8 +18,8 @@ Docker is required only for the optional cloud-pilot packaging workflow.
 ## Clone and run
 
 ```bash
-git clone https://github.com/chowonje/SmartFarmOS.git
-cd SmartFarmOS
+git clone https://github.com/chowonje/SmartFarmOS-OpenSource.git
+cd SmartFarmOS-OpenSource
 ```
 
 The local quick start is three commands:

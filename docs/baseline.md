@@ -15,8 +15,8 @@
 ## Confirmed Baseline Facts
 
 - `SmartFarmOS/` was initialized as a new local `main` Git repository on
-  2026-07-19 and connected to the private `chowonje/SmartFarmOS` origin. No
-  commit or push was created during initialization.
+  2026-07-19 and connected to a private origin that is not part of this public
+  release. No commit or push was created during initialization.
 - The parent folder and `../resberrypi` are not Git repositories.
 - `../MyApp` and `../api` are separate repositories with existing dirty work that must not be flattened or overwritten.
 - The legacy API has separate REST and realtime entrypoints.

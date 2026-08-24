@@ -5,10 +5,10 @@ reviewable changes that preserve farm/device scope, deterministic tests, and
 honest safety claims.
 
 > [!IMPORTANT]
-> The project license and prior-work provenance are still under owner review.
+> Project-owned SmartFarmOS source is licensed under Apache License 2.0. Prior
+> work and simulator-only safety boundaries are documented in this repository.
 > Discuss substantial contributions with the maintainers before investing
-> significant work. A public license must be added before the repository grants
-> general reuse or redistribution rights.
+> significant work.
 
 ## Before opening a change
 
@@ -20,8 +20,7 @@ honest safety claims.
 4. Never include credentials, customer data, private farm details, local
    databases, or generated browser profiles.
 5. Submit only work you have the right to contribute, and identify any reused
-   or adapted source. The missing project license must not be treated as
-   permission to copy SmartFarmOS or third-party code.
+   or adapted source. Apache-2.0 does not grant rights to third-party material.
 
 Security vulnerabilities follow [SECURITY.md](SECURITY.md), not the public bug
 template.
@@ -29,8 +28,8 @@ template.
 ## Development setup
 
 ```bash
-git clone https://github.com/chowonje/SmartFarmOS.git
-cd SmartFarmOS
+git clone https://github.com/chowonje/SmartFarmOS-OpenSource.git
+cd SmartFarmOS-OpenSource
 ```
 
 Then run the same three-command local setup used by the README:

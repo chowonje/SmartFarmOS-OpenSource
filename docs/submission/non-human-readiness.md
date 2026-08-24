@@ -30,8 +30,8 @@ privacy preflight. 최신 `npm run submission:rehearse`는 2026-08-10에 실행�
 
 | 항목 | 상태 | 남은 일 |
 | --- | --- | --- |
-| privacy preflight 정리 | BLOCK | 2026-08-24 공개 브랜치 tracked 파일 273개 중 텍스트 270개에서 고신뢰 API 키·개인키와 공개 Git 이력 시그니처 0. 휴리스틱 `credential_assignment` 12건은 코드/테스트 오탐으로 검토했지만 raw BLOCK, 광범위한 WARN 1,100건 이상, `opf` 미설치 상태 |
-| clean worktree | BLOCK | 현재 기능·공개 저장소 준비 변경분이 아직 커밋되지 않음 |
+| privacy preflight 정리 | BLOCK | 실제 고신뢰 비밀값 0; raw BLOCK 12건은 자격 증명 처리 코드·테스트 오탐으로 전부 검토함. 자동 게이트는 문맥 allowlist가 없어 BLOCK을 유지하며, owner 공개 판정은 WARN임. `opf` 미설치로 privacy PASS는 아님 |
+| clean worktree | PASS | 공개 전용 이력의 변경분을 식별 가능한 커밋으로 관리 |
 
 ## 사람 확인이 필요한 별도 게이트
 

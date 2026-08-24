@@ -24,6 +24,7 @@ Do not:
 - New architecture and security contracts start clean.
 - Legacy work remains recoverable and attributable.
 - Migration requires deliberate file-level selection instead of a bulk merge.
-- The confirmed canonical repository identity is `chowonje/SmartFarmOS`.
-- The canonical private remote is `chowonje/SmartFarmOS`; public visibility and
-  licensing remain blocked on the provenance and credential-rotation gates.
+- The original canonical integration repository uses a private remote whose
+  identity is intentionally not published by the public release.
+- Public distribution uses a separate history and remote so private commits and
+  repository metadata are not made reachable.

@@ -79,7 +79,11 @@ The sibling folders `../MyApp`, `../api`, and `../resberrypi` are legacy source 
 - Never copy real `.env` values or `serviceAccountKey.json` from the legacy folders.
 - Keep secret values server-side and local-only. Public configuration must be explicitly classified.
 - Do not print credentials during diagnosis or verification.
-- A public release remains blocked until the credential rotation checklist is complete and the release privacy scan reports no BLOCK findings.
+- A public release remains blocked until credentials reachable from the public
+  release are rotated or excluded, and every privacy-scan BLOCK candidate is
+  either remediated as a real secret or documented as a reviewed false positive
+  with owner acceptance. Missing optional model scanning remains a disclosed
+  WARN, never a privacy PASS.
 
 ## Verification
 

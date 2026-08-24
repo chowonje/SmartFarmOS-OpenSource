@@ -79,8 +79,9 @@ The latest local rehearsal ran on 2026-08-10 and remained **BLOCK** with
   no text or EXIF metadata chunks. A high-confidence source/history check found
   no real API-key or private-key signature. The generic scanner still reports
   12 reviewed `credential_assignment` code/test false positives, more than 1,100 broad
-  heuristic warnings, and missing `opf`, so its raw decision remains **BLOCK**
-  rather than a formal privacy PASS.
+  heuristic warnings, and missing `opf`, so its raw decision remains **BLOCK**.
+  After exact-line review and the owner's explicit publication direction, the
+  public-release decision is **WARN**, not a formal privacy PASS.
 - An unreviewed candidate video exists at
   `artifacts/submission/smartfarm-demo-candidate.mp4`.
 - The official 2026 report template and an explicitly non-uploadable draft are
