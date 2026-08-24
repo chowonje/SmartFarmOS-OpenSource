@@ -74,11 +74,11 @@ The latest local rehearsal ran on 2026-08-10 and remained **BLOCK** with
 - `SMARTFARM_REQUIRE_BROWSER=1 npm run verify` passed again on 2026-08-24 with 304 workspace tests,
   89 submission/tool tests, and the browser smoke.
 - `npm run submission:license-audit` passed for 155 external package entries.
-- The 2026-08-24 full public-tree privacy preflight considered 299 files and
-  scanned 270 text files. A high-confidence source/history check found no real
-  API-key or private-key signature; three skipped PNG icons contain no text or
-  EXIF metadata chunks. The generic scanner still reports 12 reviewed
-  `credential_assignment` code/test false positives, more than 1,100 broad
+- The 2026-08-24 public-tip fresh clone contains 273 tracked files; the privacy
+  preflight scanned 270 text files, while its three skipped PNG icons contain
+  no text or EXIF metadata chunks. A high-confidence source/history check found
+  no real API-key or private-key signature. The generic scanner still reports
+  12 reviewed `credential_assignment` code/test false positives, more than 1,100 broad
   heuristic warnings, and missing `opf`, so its raw decision remains **BLOCK**
   rather than a formal privacy PASS.
 - An unreviewed candidate video exists at
