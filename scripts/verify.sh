@@ -221,11 +221,17 @@ if [[ -n "$forbidden_paths" ]]; then
   exit 1
 fi
 
-if rg -l --hidden \
-  --glob '!.git/**' \
-  --glob '!node_modules/**' \
-  --glob '!package-lock.json' \
-  -- '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' . >/dev/null; then
+private_key_paths="$(
+  find . \
+    -path './.git' -prune -o \
+    -path './node_modules' -prune -o \
+    -type f \
+    ! -name 'package-lock.json' \
+    -exec grep -alE -- '-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----' {} + \
+    || true
+)"
+
+if [[ -n "$private_key_paths" ]]; then
   echo "Private-key material was detected in the canonical repository." >&2
   exit 1
 fi

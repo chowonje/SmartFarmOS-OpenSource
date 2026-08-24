@@ -44,6 +44,7 @@ async function runBrowserSmoke(executablePath) {
   let chrome = null;
   let cdp = null;
   let launcherOutput = "";
+  let chromeOutput = "";
 
   try {
     launcher = spawn(process.execPath, [
@@ -86,7 +87,13 @@ async function runBrowserSmoke(executablePath) {
       `--user-data-dir=${chromeProfile}`,
       pwaUrl,
     ], {
-      stdio: "ignore",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    chrome.stdout?.on("data", (chunk) => {
+      chromeOutput = appendBounded(chromeOutput, chunk);
+    });
+    chrome.stderr?.on("data", (chunk) => {
+      chromeOutput = appendBounded(chromeOutput, chunk);
     });
 
     const debuggingPort = await waitForDevToolsPort(chromeProfile, chrome);
@@ -940,13 +947,18 @@ async function runBrowserSmoke(executablePath) {
       "admin gateway console",
       15_000,
     );
-    await cdp.evaluate(`(() => {
+    await cdp.waitForTruthy(`(() => {
+      const button = Array.from(document.querySelectorAll("button"))
+        .find((element) => element.textContent?.includes("10분 연결 코드 발급"));
+      return button instanceof HTMLButtonElement && !button.disabled;
+    })()`, "enabled enrollment issue action", 15_000);
+    assert.equal(await cdp.evaluate(`(() => {
       const button = Array.from(document.querySelectorAll("button"))
         .find((element) => element.textContent?.includes("10분 연결 코드 발급"));
       if (!(button instanceof HTMLButtonElement) || button.disabled) return false;
       button.click();
       return true;
-    })()`);
+    })()`), true, "Admin must expose an enabled enrollment issue action");
     await cdp.waitForTruthy(
       'document.querySelector("output.token-output")?.textContent?.trim().length > 40',
       "one-time enrollment token result",
@@ -1005,9 +1017,10 @@ async function runBrowserSmoke(executablePath) {
       "PWA browser two-area telemetry/history comparison and freshness, low-water alarm trigger/acknowledgement/clear/audit, five-second device-local timed irrigation pending/final-off/ACK aggregation/audit, device-local software stop interruption/causal history, farm control personalization/save/reload, recent control history, page separation, multi-metric environment telemetry/cache, control acknowledgement, crop CRUD/reload, weather/location fixture slice, mobile layout, offline preservation, offline shell, separate admin navigation, one-time gateway enrollment issue/cancel, browser secret non-persistence, and launcher shutdown paths passed.\n",
     );
   } catch (error) {
-    const detail = launcherOutput.trim() === "" ? "" : `\nLauncher output:\n${launcherOutput}`;
+    const launcherDetail = launcherOutput.trim() === "" ? "" : `\nLauncher output:\n${launcherOutput}`;
+    const chromeDetail = chromeOutput.trim() === "" ? "" : `\nChrome output:\n${chromeOutput}`;
     const diagnostic = error instanceof Error ? (error.stack ?? error.message) : String(error);
-    throw new Error(`${diagnostic}${detail}`);
+    throw new Error(`${diagnostic}${launcherDetail}${chromeDetail}`);
   } finally {
     cdp?.close();
     await terminateChild(chrome, "SIGTERM");
@@ -1220,7 +1233,7 @@ async function waitForHttp(url, launcher, readOutput) {
 
 async function waitForDevToolsPort(profilePath, chrome) {
   const file = join(profilePath, "DevToolsActivePort");
-  const deadline = Date.now() + 10_000;
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     if (chrome.exitCode !== null || chrome.signalCode !== null) {
       throw new Error("Chrome exited before opening its debugging port");
@@ -1238,7 +1251,7 @@ async function waitForDevToolsPort(profilePath, chrome) {
 }
 
 async function waitForPageTarget(port, pageUrl, chrome) {
-  const deadline = Date.now() + 10_000;
+  const deadline = Date.now() + 30_000;
   while (Date.now() < deadline) {
     if (chrome.exitCode !== null || chrome.signalCode !== null) {
       throw new Error("Chrome exited before creating the PWA page");
