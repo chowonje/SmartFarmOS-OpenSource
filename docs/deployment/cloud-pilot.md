@@ -82,7 +82,7 @@ members such as links, devices, and FIFOs before it extracts or builds them.
 ./podman.sh build \
   --archive ../../../SmartFarmOS-public-release.tar.gz \
   --archive-sha256 <copy-the-trusted-lowercase-64-character-sha256> \
-  --commit 4af586a47b9da9a7a1220f05b1318460f1031ede \
+  --commit <public-release-commit-sha> \
   --image smartfarm-os-cloud-pilot:2026-final
 
 ./podman.sh up \
