@@ -74,12 +74,13 @@ The latest local rehearsal ran on 2026-08-10 and remained **BLOCK** with
 - `SMARTFARM_REQUIRE_BROWSER=1 npm run verify` passed again on 2026-08-24 with 304 workspace tests,
   89 submission/tool tests, and the browser smoke.
 - `npm run submission:license-audit` passed for 155 external package entries.
-- The 2026-08-24 full publication-candidate privacy preflight considered 271
-  files and scanned 268 text files. A high-confidence source/history check found
-  no real API-key or private-key signature; three skipped PNG icons contain no
-  text or EXIF metadata chunks. The generic scanner still reports 12 reviewed
-  `credential_assignment` code/test false positives, 1,176 warnings, and missing
-  `opf`, so its raw decision remains **BLOCK** rather than a formal privacy PASS.
+- The 2026-08-24 full public-tree privacy preflight considered 299 files and
+  scanned 270 text files. A high-confidence source/history check found no real
+  API-key or private-key signature; three skipped PNG icons contain no text or
+  EXIF metadata chunks. The generic scanner still reports 12 reviewed
+  `credential_assignment` code/test false positives, more than 1,100 broad
+  heuristic warnings, and missing `opf`, so its raw decision remains **BLOCK**
+  rather than a formal privacy PASS.
 - An unreviewed candidate video exists at
   `artifacts/submission/smartfarm-demo-candidate.mp4`.
 - The official 2026 report template and an explicitly non-uploadable draft are

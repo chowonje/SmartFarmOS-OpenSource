@@ -30,7 +30,7 @@ privacy preflight. 최신 `npm run submission:rehearse`는 2026-08-10에 실행�
 
 | 항목 | 상태 | 남은 일 |
 | --- | --- | --- |
-| privacy preflight 정리 | BLOCK | 2026-08-24 공개 후보 271개에서 고신뢰 API 키·개인키와 현재 Git 이력 시그니처 0. 휴리스틱 `credential_assignment` 12건은 코드/테스트 오탐으로 검토했지만 raw BLOCK, WARN 1176건, `opf` 미설치 상태 |
+| privacy preflight 정리 | BLOCK | 2026-08-24 공개 트리 299개 중 텍스트 270개에서 고신뢰 API 키·개인키와 공개 Git 이력 시그니처 0. 휴리스틱 `credential_assignment` 12건은 코드/테스트 오탐으로 검토했지만 raw BLOCK, 광범위한 WARN 1,100건 이상, `opf` 미설치 상태 |
 | clean worktree | BLOCK | 현재 기능·공개 저장소 준비 변경분이 아직 커밋되지 않음 |
 
 ## 사람 확인이 필요한 별도 게이트
