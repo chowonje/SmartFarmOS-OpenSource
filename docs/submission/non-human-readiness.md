@@ -22,8 +22,9 @@ privacy preflight. 최신 `npm run submission:rehearse`는 2026-08-10에 실행�
 | 프로젝트 라이선스 파일 | PASS | 소유자 선택 Apache-2.0, 루트 `LICENSE`와 package metadata |
 | 의존성 보안 권고 시점 검사 | PASS | 2026-08-24 별도 `npm audit --audit-level=moderate`에서 0 vulnerabilities; `npm run verify`와 CI에는 포함되지 않음 |
 | 제출 필수 문서 존재 | PASS | `official-requirements`, `release-checklist`, `result-report`, `demo-rehearsal`, `presentation-outline`, `ai-use-disclosure` 존재 |
-| identifiable Git commit | PASS | canonical origin에 식별 가능한 초기 baseline 커밋 존재 |
-| canonical Git origin | PASS | `submission:rehearse`에서 `git.origin` PASS |
+| identifiable Git commit | PASS | 공개 product tip `6ffa26f` 존재 |
+| public Git origin | PASS | `chowonje/SmartFarmOS-OpenSource` Public `main`을 익명 clone으로 확인 |
+| public fresh clone | PASS | 273 tracked files, private commit 미포함, `npm ci`, 총 394개 검증·Chrome 스모크·라이선스 155개·취약점 0 |
 | 무음 후보 영상 생성물 | PASS | `artifacts/submission/smartfarm-demo-candidate.mp4` 존재 |
 
 ## 아직 남은 비인간 항목

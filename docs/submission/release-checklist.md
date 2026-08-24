@@ -21,7 +21,7 @@ PASS는 두 범주 어느 쪽도 자동으로 승인하지 않는다.
 | AI 사용 고지 | BLOCK | 소유자가 실제 사용 범위를 검토한 최종본 |
 | 개발/결과보고서 | BLOCK | 공식 DOCX/PDF 초안의 placeholder 제거·본문 5쪽·동일 내용 확인·수치/라이선스 확정 |
 | 3분 이내 시연영상 | BLOCK | 검토된 영상의 길이·SHA-256 로컬 증거 |
-| Git 재현성·공개 | BLOCK | `SmartFarmOS-OpenSource` Public 저장소 push와 익명 fresh clone 검증, 보고서의 commit/ref 기록 필요 |
+| Git 재현성·공개 | PASS | [SmartFarmOS-OpenSource](https://github.com/chowonje/SmartFarmOS-OpenSource) Public `main` 공개. 익명 clone의 `6ffa26f`에서 273 tracked files, private commit 미포함, `npm ci`, 총 394개 검증·Chrome 스모크·라이선스 155개·취약점 0 확인 |
 | 공개 파일 선별 | PASS | private `main`과 공통 조상이 없는 독립 이력, tracked 273개, `.codex/`·환경파일·산출물 제외 |
 | 중복수혜 확인서 | BLOCK | 소유자는 중복수혜 없음으로 확인했으나 무상 클라우드 자원 분류 후 ZIP 포함 여부를 최종 결정 |
 | ZIP·포털 완료 | BLOCK | 원본+동일 PDF+(해당 시 중복수혜 확인서) ZIP, `제출 완료` 상태와 완료 이메일 |

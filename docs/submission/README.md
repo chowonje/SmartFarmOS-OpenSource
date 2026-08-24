@@ -74,6 +74,10 @@ The latest local rehearsal ran on 2026-08-10 and remained **BLOCK** with
 - `SMARTFARM_REQUIRE_BROWSER=1 npm run verify` passed again on 2026-08-24 with 304 workspace tests,
   90 submission/tool tests (394 total), and the browser smoke.
 - `npm run submission:license-audit` passed for 155 external package entries.
+- The public `SmartFarmOS-OpenSource` `main` was cloned without authenticated
+  Git configuration. Product tip `6ffa26f` matched, the private baseline commit
+  was absent, and `npm ci`, the complete browser-required verification, the
+  license audit, and `npm audit --audit-level=moderate` all passed.
 - The 2026-08-24 public-tip fresh clone contains 273 tracked files; the privacy
   preflight scanned 270 text files, while its three skipped PNG icons contain
   no text or EXIF metadata chunks. A high-confidence source/history check found
